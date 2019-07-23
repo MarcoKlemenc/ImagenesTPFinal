@@ -16,7 +16,7 @@ public class ImageContainer extends JLabel {
     private int[][] contours = null;
     private int[] contourColor = null;
 
-    public ImageContainer(AppVideo app) {
+    ImageContainer(AppVideo app) {
         super();
         MouseArea listener = new MouseArea(this);
         addMouseListener(listener);
@@ -24,40 +24,40 @@ public class ImageContainer extends JLabel {
         this.app = app;
     }
 
-    public String getMode() {
+    String getMode() {
         return mode;
     }
 
-    public void setMode(String mode) {
+    void setMode(String mode) {
         this.mode = mode;
     }
 
-    public void setX1(int x1) {
+    void setX1(int x1) {
         this.x1 = x1;
     }
 
-    public void setY1(int y1) {
+    void setY1(int y1) {
         this.y1 = y1;
     }
 
-    public void setX2(int x2) {
+    void setX2(int x2) {
         this.x2 = x2;
     }
 
-    public void setY2(int y2) {
+    void setY2(int y2) {
         this.y2 = y2;
     }
 
-    public void setContours(int[][] contours) {
+    void setContours(int[][] contours) {
         this.contours = contours;
     }
 
-    public void setContourColor(int[] contourColor) {
+    void setContourColor(int[] contourColor) {
         this.contourColor = contourColor;
     }
 
-    public void endMouseMovement() {
-        if (this.mode == "activeContours") {
+    void endMouseMovement() {
+        if (this.mode.equals("activeContours")) {
             this.app.addActiveContour(this.x1, this.y1, this.x2, this.y2);
             this.app.getActiveContours();
         }

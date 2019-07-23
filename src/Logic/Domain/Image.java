@@ -11,9 +11,7 @@ public class Image extends BufferedImage {
 
     public Pixel getPixel(int x, int y) {
         Color color = new Color(super.getRGB(x, y));
-        Pixel pixel = new Pixel(color.getRed(), color.getGreen(), color.getBlue());
-
-        return pixel;
+        return new Pixel(color.getRed(), color.getGreen(), color.getBlue());
     }
 
     public int[] getPixelAverages(int x1, int y1, int x2, int y2) {

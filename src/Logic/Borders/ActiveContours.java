@@ -16,9 +16,9 @@ public class ActiveContours {
     private int[][] contours;
     private int x1, y1, x2, y2;
 
-    public ActiveContours(double hueLimit, int x1, int y1, int x2, int y2) {
+    public ActiveContours(double hueLimit, double saturationLimit, int x1, int y1, int x2, int y2) {
         this.hueLimit = hueLimit;
-        this.saturationLimit = hueLimit / 360;
+        this.saturationLimit = saturationLimit;
         this.x1 = x1;
         this.y1 = y1;
         this.x2 = x2;
@@ -41,11 +41,10 @@ public class ActiveContours {
     private boolean updateContours() {
         boolean modifiedValue = false;
         int[][] newContours = new int[this.image.getWidth()][this.image.getHeight()];
+        int array_length = this.contours[0].length;
         // Copio el array de contornos para trabajar sin ir pisando los datos
         for (int x = 0; x < this.contours.length; x++) {
-            for (int y = 0; y < this.contours[0].length; y++) {
-                newContours[x][y] = this.contours[x][y];
-            }
+            System.arraycopy(this.contours[x], 0, newContours[x], 0, array_length);
         }
         for (int x = 1; x < this.contours.length - 1; x++) {
             for (int y = 1; y < this.contours[0].length - 1; y++) {

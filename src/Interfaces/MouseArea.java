@@ -7,7 +7,7 @@ public class MouseArea extends MouseAdapter {
 
     private ImageContainer container;
 
-    public MouseArea(ImageContainer container) {
+    MouseArea(ImageContainer container) {
         this.container = container;
     }
 

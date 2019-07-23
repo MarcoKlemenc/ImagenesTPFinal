@@ -2,9 +2,9 @@ package Interfaces;
 
 import javax.swing.*;
 
-public class DoubleEntry {
+class DoubleEntry {
 
-    public static double[] getValues(String message, String[] labels) {
+    static double[] getValues(String message, String[] labels) {
         JTextField[] inputs = new JTextField[labels.length];
         for (int i = 0; i < inputs.length; i++) {
             inputs[i] = new JTextField();

@@ -7,16 +7,16 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Scanner;
 
-public class FileChooser {
+class FileChooser {
 
     private static final String EXTENSION_PREFIX = "Archivos ";
     private JFileChooser fileC;
 
-    public FileChooser() {
+    FileChooser() {
         this.fileC = new JFileChooser();
     }
 
-    public String chooseFolder() {
+    String chooseFolder() {
         initialize(new String[0]);
         this.fileC.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int a = this.fileC.showOpenDialog(null);
@@ -24,7 +24,7 @@ public class FileChooser {
         return a == JFileChooser.APPROVE_OPTION ? this.fileC.getSelectedFile().toString() : null;
     }
 
-    public String chooseFile(String[] extensions) {
+    String chooseFile(String[] extensions) {
         initialize(extensions);
         int a = this.fileC.showOpenDialog(this.fileC);
         saveDirectory();

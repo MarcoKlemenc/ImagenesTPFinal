@@ -22,21 +22,18 @@ import java.util.*;
 
 public class AppVideo extends JFrame implements ActionListener {
 
-    protected static final int X_PADDING = 26;
-    protected static final int Y_PADDING = 72;
+    private static final int X_PADDING = 26;
+    private static final int Y_PADDING = 72;
     private static final String[] EXTENSIONS = new String[]{"jpg", "jpeg"};
-    static final FilenameFilter IMAGE_FILTER = new FilenameFilter() {
-
-        @Override
-        public boolean accept(final File dir, final String name) {
-            for (final String ext : EXTENSIONS) {
-                if (name.endsWith("." + ext)) {
-                    return true;
-                }
+    private static final FilenameFilter IMAGE_FILTER = ((final File dir, final String name) -> {
+        for (final String ext : EXTENSIONS) {
+            if (name.endsWith("." + ext)) {
+                return true;
             }
-            return false;
         }
-    };
+        return false;
+    }
+    );
 
     static {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -44,13 +41,13 @@ public class AppVideo extends JFrame implements ActionListener {
 
     private Image current = null;
     private double activeContoursHueLimit = 0;
+    private double activeContoursSaturationLimit = 0;
     private ImageContainer container;
-    private ImageIcon icon = null;
     private List<ActiveContours> contoursGenerator = new ArrayList<>();
     private List<Image> images;
     private ListIterator<Image> imagesIt;
 
-    public AppVideo() {
+    private AppVideo() {
         this.setJMenuBar(this.createMenuBar());
         setLayout(new FlowLayout());
         setSize(320, 240);
@@ -89,12 +86,11 @@ public class AppVideo extends JFrame implements ActionListener {
         this.reload();
     }
 
-    public void nextFrame() {
+    private void nextFrame() {
         if (!this.imagesIt.hasNext()) {
             this.imagesIt = this.images.listIterator();
         }
-        Image image = this.imagesIt.next();
-        this.current = image;
+        this.current = this.imagesIt.next();
         if (this.activeContoursHueLimit != 0) {
             this.getActiveContours();
         }
@@ -115,45 +111,37 @@ public class AppVideo extends JFrame implements ActionListener {
         JMenuItem rep = new JMenuItem("Reproducir");
         barra.add(rep);
         // Cada 1000/FPS segundos se va a ejecutar actionPerformed, que va a traer y mostrar el próximo frame
-        ActionListener player = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (imagesIt.hasNext()) {
-                    nextFrame();
-                    reload();
-                } else {
-                    ((Timer) e.getSource()).stop();
-                    imagesIt = images.listIterator();
-                    rep.setEnabled(true);
-                }
+        ActionListener player = ((ActionEvent e) -> {
+            if (imagesIt.hasNext()) {
+                nextFrame();
+                reload();
+            } else {
+                ((Timer) e.getSource()).stop();
+                imagesIt = images.listIterator();
+                rep.setEnabled(true);
             }
-        };
+        });
         // Cuando se haga clic en el botón reproducir se dispara un timer que actualiza la imagen cada 1000/FPS segundos
-        rep.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                int fps = IntegerEntry.getValues("Ingrese los FPS deseados", new String[]{"FPS"})[0];
-                rep.setEnabled(false);
-                Timer timer = new Timer(1000 / fps, player);
-                timer.start();
-            }
+        rep.addActionListener((ActionEvent e) -> {
+            int fps = IntegerEntry.getValues("Ingrese los FPS deseados", new String[]{"FPS"})[0];
+            rep.setEnabled(false);
+            Timer timer = new Timer(1000 / fps, player);
+            timer.start();
         });
         return barra;
     }
 
-    public void loadImages() {
+    private void loadImages() {
         File folder = new File(this.chooseFolderOpen());
         if (!folder.isDirectory()) {
             return;
         }
-        TreeSet<File> files = new TreeSet<>(new Comparator<File>() {
-            public int compare(File f1, File f2) {
-                String number1 = f1.getName().replaceAll("\\D+", "");
-                String number2 = f2.getName().replaceAll("\\D+", "");
-                Integer n1 = Integer.parseInt(number1);
-                Integer n2 = Integer.parseInt(number2);
-                return n1.compareTo(n2);
-            }
+        TreeSet<File> files = new TreeSet<>((File f1, File f2) -> {
+            String number1 = f1.getName().replaceAll("\\D+", "");
+            String number2 = f2.getName().replaceAll("\\D+", "");
+            Integer n1 = Integer.parseInt(number1);
+            Integer n2 = Integer.parseInt(number2);
+            return n1.compareTo(n2);
         });
         for (final File f : folder.listFiles(IMAGE_FILTER)) {
             files.add(f);
@@ -169,7 +157,7 @@ public class AppVideo extends JFrame implements ActionListener {
         this.imagesIt = this.images.listIterator();
     }
 
-    public void loadVideo() {
+    private void loadVideo() {
         Mat frame = new Mat();
         FileChooser fc = new FileChooser();
         VideoCapture camera = new VideoCapture();
@@ -182,12 +170,12 @@ public class AppVideo extends JFrame implements ActionListener {
         this.imagesIt = this.images.listIterator();
     }
 
-    public void addActiveContour(int x1, int y1, int x2, int y2) {
-        ActiveContours newContour = new ActiveContours(this.activeContoursHueLimit, x1, y1, x2, y2);
+    void addActiveContour(int x1, int y1, int x2, int y2) {
+        ActiveContours newContour = new ActiveContours(this.activeContoursHueLimit, this.activeContoursSaturationLimit, x1, y1, x2, y2);
         this.contoursGenerator.add(newContour);
     }
 
-    public void getActiveContours() {
+    void getActiveContours() {
         for (ActiveContours c : this.contoursGenerator) {
             c.setImage(this.current);
         }
@@ -204,12 +192,12 @@ public class AppVideo extends JFrame implements ActionListener {
             }
         }
         for (ActiveContours contour : this.contoursGenerator) {
-            combinedContours = this.combineTwoContourMatrixes(combinedContours, contour.getContours());
+            this.combineTwoContourMatrixes(combinedContours, contour.getContours());
         }
         return combinedContours;
     }
 
-    private int[][] combineTwoContourMatrixes(int[][] srcMatrix, int[][] matrix) {
+    private void combineTwoContourMatrixes(int[][] srcMatrix, int[][] matrix) {
         for (int x = 0; x < srcMatrix.length; x++) {
             for (int y = 0; y < srcMatrix[0].length; y++) {
                 if (srcMatrix[x][y] == 3 && matrix[x][y] != 3) {
@@ -217,30 +205,29 @@ public class AppVideo extends JFrame implements ActionListener {
                 }
             }
         }
-        return srcMatrix;
     }
 
     // Buscar contornos activos
-    public void activateActiveContour() {
-        double[] parameters = DoubleEntry.getValues("Ingrese el factor de matiz", new String[]{"Factor de matiz"});
+    private void activateActiveContour() {
+        double[] parameters = DoubleEntry.getValues("Ingrese los factores", new String[]{"Matiz", "Saturación"});
         this.activeContoursHueLimit = parameters[0];
+        this.activeContoursSaturationLimit = parameters[1];
         this.container.setMode("activeContours");
     }
 
-    public JMenu addMenu(String texto) {
+    private JMenu addMenu(String texto) {
         return new JMenu(texto);
     }
 
-    public JMenuItem addMenuItem(String texto) {
+    private JMenuItem addMenuItem(String texto) {
         JMenuItem item = new JMenuItem(texto);
         item.addActionListener(this);
         return item;
     }
 
-    public void reload() {
+    private void reload() {
         if (this.current != null) {
-            this.icon = new ImageIcon(this.current);
-            this.container.setIcon(icon);
+            this.container.setIcon(new ImageIcon(this.current));
             this.setSize(this.current.getWidth() + X_PADDING, this.current.getHeight() + Y_PADDING);
         }
     }

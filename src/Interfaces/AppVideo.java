@@ -32,8 +32,7 @@ public class AppVideo extends JFrame implements ActionListener {
             }
         }
         return false;
-    }
-    );
+    });
 
     static {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -43,18 +42,21 @@ public class AppVideo extends JFrame implements ActionListener {
     private double activeContoursHueLimit = 0;
     private double activeContoursSaturationLimit = 0;
     private ImageContainer container;
-    private List<ActiveContours> contoursGenerator = new ArrayList<>();
+    private List<ActiveContours> contoursGenerator;
     private List<Image> images;
     private ListIterator<Image> imagesIt;
+    private int[][] colors;
+    private int currentColorIndex;
 
     private AppVideo() {
+        this.colors = new int[][]{{255, 0, 0}, {0, 255, 0}, {0, 0, 255}};
         this.setJMenuBar(this.createMenuBar());
-        setLayout(new FlowLayout());
-        setSize(320, 240);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setLayout(new FlowLayout());
+        this.setSize(320, 240);
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.container = new ImageContainer(this);
         this.add(this.container);
-        setVisible(true);
+        this.setVisible(true);
     }
 
     public static void main(String[] args) {
@@ -131,7 +133,15 @@ public class AppVideo extends JFrame implements ActionListener {
         return barra;
     }
 
+    private void reset() {
+        this.images = new LinkedList<>();
+        this.imagesIt = null;
+        this.current = null;
+        this.contoursGenerator = new ArrayList<>();
+    }
+
     private void loadImages() {
+        this.reset();
         File folder = new File(this.chooseFolderOpen());
         if (!folder.isDirectory()) {
             return;
@@ -146,7 +156,6 @@ public class AppVideo extends JFrame implements ActionListener {
         for (final File f : folder.listFiles(IMAGE_FILTER)) {
             files.add(f);
         }
-        this.images = new LinkedList<>();
         for (final File f : files) {
             try {
                 Image img = BufferedImageConverter.toImage(ImageIO.read(f));
@@ -158,11 +167,11 @@ public class AppVideo extends JFrame implements ActionListener {
     }
 
     private void loadVideo() {
+        this.reset();
         Mat frame = new Mat();
         FileChooser fc = new FileChooser();
         VideoCapture camera = new VideoCapture();
         camera.open(fc.chooseFile(new String[]{}));
-        this.images = new LinkedList<>();
         while (camera.read(frame)) {
             Image img = MatConverter.convertMatToImage(frame);
             this.images.add(img);
@@ -180,7 +189,11 @@ public class AppVideo extends JFrame implements ActionListener {
             c.setImage(this.current);
         }
         int[][] contours = this.getContours();
-        this.container.setContourColor(new int[]{255, 255, 255});
+        this.currentColorIndex++;
+        if (this.currentColorIndex == this.colors.length){
+            this.currentColorIndex = 0;
+        }
+        this.container.setContourColor(this.colors[currentColorIndex]);
         this.container.setContours(contours);
     }
 
